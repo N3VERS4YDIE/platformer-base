@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         inputActions = new();
+        
         inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<float>();
         inputActions.Player.Move.canceled += _ => moveInput = 0;
         inputActions.Player.Jump.performed += _ => jumpInput = true;
