@@ -1,38 +1,45 @@
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Stats : MonoBehaviour
 {
     [Header("Health")]
-    [SerializeField] private int maxHealth;
-    
-    [Header("Damage")]
-    [SerializeField] private int damage;
-
+    [SerializeField] public float health;
+    [SerializeField] public float maxHealth = 100;
+    public TMP_Text hpText;
     private Vector3 initialPosition;
 
 
     void Start()
     {
         initialPosition = transform.position;
+        UpdateHp();
+    }
+
+    public void TakeDamage(float damage)
+    {
+        health += damage;
+        UpdateHp();
+
+        health = Mathf.Clamp(health, 0, maxHealth);
+        if (health <= 0)
+        {
+            health = 1;
+            Death();
+        }
     }
 
     void Death()
     {
-
-        
-        if (maxHealth <= 0)
-        {
-            maxHealth = 1;
-            transform.position = initialPosition;
-        }
+        transform.position = initialPosition;
+        UpdateHp(); 
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+
+    void UpdateHp()
     {
-        if (collision.gameObject.CompareTag("Death"))
-        {
-            maxHealth -= damage;
-            Death();
-        }
+        hpText.text = "Health: " + health;
     }
+
 }
