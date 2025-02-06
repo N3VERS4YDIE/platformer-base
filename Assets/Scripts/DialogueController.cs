@@ -1,58 +1,64 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class DialogueController : MonoBehaviour
 {
-    [SerializeField] private TMP_Text dialogueText;
+    [SerializeField] TMP_Text dialogueText;
 
-    private PlayerController playerController;
-    private InputActions inputActions;
+    Queue<string> dialogue = new();
+    float lastTimeScale;
 
-    private List<string> dialogue;
-    private float lastTimeScale;
-
-    private void Awake()
+    void Awake()
     {
-        playerController = FindFirstObjectByType<PlayerController>(FindObjectsInactive.Include);
-        inputActions = new();
-
-        inputActions.UI.Next.performed += _ => NextText();
+        GameManager.Instance.InputActions.UI.Next.performed += OnNextPerformed;
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
-        inputActions.UI.Enable();
+        GameManager.Instance.InputActions.UI.Enable();
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
-        inputActions.UI.Disable();
+        GameManager.Instance.InputActions.UI.Disable();
     }
 
-    public void StartDialogue(List<string> dialogue)
+    void OnDestroy()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.InputActions.UI.Next.performed -= OnNextPerformed;
+        }
+    }
+
+    void OnNextPerformed(InputAction.CallbackContext _)
+    {
+        NextText();
+    }
+
+    public void StartDialogue(IEnumerable<string> dialogue)
     {
         this.dialogue = new(dialogue);
-        gameObject.SetActive(true);
-        NextText();
-
-        playerController.enabled = false;
         lastTimeScale = Time.timeScale;
-        Time.timeScale = 0;
+        NextText();
     }
 
-    private void NextText()
+    void NextText()
     {
         if (dialogue.Count > 0)
         {
-            dialogueText.text = dialogue[0];
-            dialogue.RemoveAt(0);
+            dialogueText.text = dialogue.Dequeue();
+            GameManager.Instance.InputActions.Player.Disable();
+            Time.timeScale = 0;
+            gameObject.SetActive(true);
         }
         else
         {
-            gameObject.SetActive(false);
-            playerController.enabled = true;
+            GameManager.Instance.InputActions.Player.Enable();
             Time.timeScale = lastTimeScale;
+            gameObject.SetActive(false);
         }
     }
 }

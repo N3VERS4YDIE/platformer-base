@@ -3,16 +3,16 @@ using UnityEngine;
 
 public class DialogueTrigger : MonoBehaviour
 {
-    [SerializeField][TextArea] private List<string> dialogue;
-    
-    private DialogueController dialogueController;
+    [SerializeField][TextArea] string[] dialogue;
 
-    private void Awake()
+    DialogueController dialogueController;
+
+    void Awake()
     {
         dialogueController = FindFirstObjectByType<DialogueController>(FindObjectsInactive.Include);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {

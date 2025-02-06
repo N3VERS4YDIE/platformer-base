@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5994149748721756671}
   - component: {fileID: 6910407226472394609}
   - component: {fileID: 6616292094816473423}
+  - component: {fileID: 6868914625315760371}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -167,8 +168,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd9a5eab05ece20478c792d2131dbd16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 12.5
-  jumpForce: 10
+  moveSpeed: 12
+  jumpForce: 15
   maxJumps: 2
   groundDetectionPoint: {fileID: 3045179921683268527}
   groundDetectionRadius: 0.6
@@ -176,6 +177,23 @@ MonoBehaviour:
   - serializedVersion: 2
     m_Bits: 8
   excludeJumpableLayers: []
+--- !u!114 &6868914625315760371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6875416365348368383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10e8d56eb46480b4d98e0434263094d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  invulnerabilityDuration: 1
+  blinkTimes: 3
+  blinkColor: {r: 1, g: 0, b: 0, a: 0.627451}
+  healthText: {fileID: 0}
 --- !u!1 &7158473909792288618
 GameObject:
   m_ObjectHideFlags: 0

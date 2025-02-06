@@ -1,45 +1,71 @@
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections;
+using System;
 
-public class Stats : MonoBehaviour
+public abstract class Stats : MonoBehaviour
 {
+    public event Action<short> OnHealthChanged;
+
+
     [Header("Health")]
-    [SerializeField] public float health;
-    [SerializeField] public float maxHealth = 100;
-    public TMP_Text hpText;
-    private Vector3 initialPosition;
+    [SerializeField] protected short maxHealth;
+    [SerializeField] protected float invulnerabilityDuration;
 
+    [Header("Blinking Effect")]
+    [SerializeField] protected byte blinkTimes;
+    [SerializeField] protected Color blinkColor = Color.red;
 
-    void Start()
+    protected SpriteRenderer spriteRenderer;
+    protected short health;
+    protected bool isInvulnerable = false;
+
+    protected virtual void Awake()
     {
-        initialPosition = transform.position;
-        UpdateHp();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        health = maxHealth;
     }
 
-    public void TakeDamage(float damage)
+    public virtual void ChangeHealth(short healthDelta, bool ignoreInvulnerability = false)
     {
-        health += damage;
-        UpdateHp();
+        if (healthDelta < 0 && isInvulnerable && !ignoreInvulnerability)
+        {
+            return;
+        }
 
-        health = Mathf.Clamp(health, 0, maxHealth);
+        health += healthDelta;
+        health = (short)Mathf.Clamp(health, 0, maxHealth);
+
+        OnHealthChanged?.Invoke(health);
+
+        if (healthDelta < 0 && !ignoreInvulnerability)
+        {
+            StartCoroutine(InvulnerabilityCooldown());
+        }
+
         if (health <= 0)
         {
-            health = 1;
-            Death();
+            Die();
         }
     }
 
-    void Death()
+    protected virtual IEnumerator InvulnerabilityCooldown()
     {
-        transform.position = initialPosition;
-        UpdateHp(); 
+        isInvulnerable = true;
+        float blinkInterval = invulnerabilityDuration / (blinkTimes * 2);
+        Color initialColor = spriteRenderer.color;
+        spriteRenderer.enabled = true;
+        spriteRenderer.color = blinkColor;
+
+        for (byte i = 0; i < blinkTimes * 2; ++i)
+        {
+            spriteRenderer.enabled = !spriteRenderer.enabled;
+            yield return new WaitForSeconds(blinkInterval);
+        }
+
+        spriteRenderer.color = initialColor;
+        spriteRenderer.enabled = true;
+        isInvulnerable = false;
     }
 
-
-    void UpdateHp()
-    {
-        hpText.text = "Health: " + health;
-    }
-
+    protected abstract void Die();
 }

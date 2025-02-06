@@ -4,50 +4,47 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float moveSpeed;
-    [SerializeField] private float jumpForce;
-    [SerializeField] private uint maxJumps;
+    [SerializeField] float moveSpeed;
+    [SerializeField] float jumpForce;
+    [SerializeField] byte maxJumps;
 
     [Header("Ground Detection")]
-    [SerializeField] private Transform groundDetectionPoint;
-    [SerializeField] private float groundDetectionRadius;
-    [SerializeField] private LayerMask[] includeJumpableLayers;
-    [SerializeField] private LayerMask[] excludeJumpableLayers;
+    [SerializeField] Transform groundDetectionPoint;
+    [SerializeField] float groundDetectionRadius;
+    [SerializeField] LayerMask[] includeJumpableLayers;
+    [SerializeField] LayerMask[] excludeJumpableLayers;
 
-    private Rigidbody2D rb;
-    private InputActions inputActions;
+    Rigidbody2D rb;
+    float moveInput;
+    bool jumpInput;
+    bool isGrounded;
+    byte remainingJumps;
 
-    private float moveInput;
-    private bool jumpInput;
-    private bool isGrounded;
-    private uint remainingJumps;
-
-    private void Awake()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        inputActions = new();
-        
-        inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<float>();
-        inputActions.Player.Move.canceled += _ => moveInput = 0;
-        inputActions.Player.Jump.performed += _ => jumpInput = true;
+
+        GameManager.Instance.InputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<float>();
+        GameManager.Instance.InputActions.Player.Move.canceled += _ => moveInput = 0;
+        GameManager.Instance.InputActions.Player.Jump.performed += _ => jumpInput = true;
     }
 
-    private void Start()
+    void Start()
     {
         ResetJumps();
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
-        inputActions.Player.Enable();
+        GameManager.Instance.InputActions.Player.Enable();
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
-        inputActions.Player.Disable();
+        GameManager.Instance.InputActions.Player.Disable();
     }
 
-    private void OnDrawGizmos()
+    void OnDrawGizmos()
     {
         if (groundDetectionPoint != null)
         {
@@ -56,25 +53,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Update()
+    void Update()
     {
         HandleJump();
         HandleFlip();
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
         HandleMovement();
         CheckGrounded();
     }
 
-    private void HandleMovement()
+    void HandleMovement()
     {
         float velocityX = moveInput * moveSpeed;
         rb.linearVelocity = new Vector2(velocityX, rb.linearVelocity.y);
     }
 
-    private void HandleJump()
+    void HandleJump()
     {
         if (jumpInput && remainingJumps > 0)
         {
@@ -85,7 +82,7 @@ public class PlayerController : MonoBehaviour
         jumpInput = false;
     }
 
-    private void CheckGrounded()
+    void CheckGrounded()
     {
         int includeMask = 0;
         foreach (var layer in includeJumpableLayers)
@@ -99,15 +96,22 @@ public class PlayerController : MonoBehaviour
             excludeMask |= layer.value;
         }
 
+        bool previouslyGrounded = isGrounded;
         isGrounded = Physics2D.OverlapCircle(groundDetectionPoint.position, groundDetectionRadius, includeMask & ~excludeMask);
 
-        if (isGrounded)
+        if (!previouslyGrounded && isGrounded || isGrounded && rb.linearVelocity.y == 0)
         {
             ResetJumps();
         }
+
+        if (previouslyGrounded && !isGrounded && rb.linearVelocity.y < 0)
+        {
+            remainingJumps = (byte)Mathf.Max(remainingJumps - 1, 0);
+        }
     }
 
-    private void HandleFlip()
+
+    void HandleFlip()
     {
         if (Mathf.Abs(moveInput) > 0)
         {
@@ -117,8 +121,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void ResetJumps()
+    void ResetJumps()
     {
-        remainingJumps = (uint)Mathf.Max(maxJumps - 1, 0);
+        remainingJumps = maxJumps;
     }
 }
