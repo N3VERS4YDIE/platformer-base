@@ -111,7 +111,7 @@ public class PlatformMovement : MonoBehaviour
     {
         if (isReversing)
         {
-            nextPointIndex--;
+            --nextPointIndex;
 
             if (nextPointIndex <= 0)
             {

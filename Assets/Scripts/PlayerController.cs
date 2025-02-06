@@ -76,7 +76,7 @@ public class PlayerController : MonoBehaviour
         if (jumpInput && remainingJumps > 0)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            remainingJumps--;
+            --remainingJumps;
         }
 
         jumpInput = false;
